@@ -11,7 +11,15 @@ async function main(): Promise<void> {
 
     const program: WebGLProgram = create_program(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
 
-    GLRotation.init(gl, program, [0, 0, 0]);
+    GLRotation.init(gl, program, [0, 0]);
+    GLRotation.render();
+    window.addEventListener("mousemove", (event: MouseEvent) => {
+        GLRotation.set_pointer_pos([
+            event.clientX / window.innerWidth * 2 - 1,
+            - event.clientY / window.innerHeight * 2 + 1,
+        ]);
+        GLRotation.render();
+    })
 }
 
 
