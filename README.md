@@ -1,15 +1,9 @@
 # rotation
 
-To install dependencies:
+A light 3D experiment mimicking anisotropic material with little objects using rotation.
 
-```bash
-bun install
-```
+No mobile support yet. The movement depends on a mouse cursor.
 
-To run:
+Also available at: <a href="https://vm.mekina.cz/rotation" target="_blank">vm.mekina.cz/rotation</a>
 
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.1.9. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+<img src="./screenshot.jpg">

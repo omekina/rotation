@@ -7,25 +7,25 @@ $dark-color-background: #191724;
 $dark-color-text: #e0def4;
 $dark-color-accent: #c4a7e7;
 
-$light-color-background: #faf4ed;
-$light-color-text: #575279;
-$light-color-accent: #907aa9;
-
-$color-background: light-dark($light-color-background, $dark-color-background);
-$color-text: light-dark($light-color-text, $dark-color-text);
-$color-accent: light-dark($light-color-accent, $dark-color-accent);
+$color-background: $dark-color-background;
+$color-text: $dark-color-text;
+$color-accent: $dark-color-accent;
 
 
 body {
   font-family: Arial, Helvetica, sans-serif;
   color: $color-text;
   background-color: $color-background;
+  margin: 0;
 }
 
 
 canvas {
-  display: block;
-  margin: 0 auto;
+  position: absolute;
+  bottom: 50vh;
+  left: 50vw;
+  transform: translate(-50%, 50%);
+  z-index: -1;
 }
 
 

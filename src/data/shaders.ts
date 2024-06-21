@@ -20,8 +20,8 @@ void main() {
     vec3 cam_pos = vec3(0., 0., 0.);
     v_surface_to_camera = normalize(cam_pos - position.xyz);
 
-    vec3 light_pos_1 = vec3(1., 0., 0.);
-    vec3 light_pos_2 = vec3(-1., 0., 0.);
+    vec3 light_pos_1 = vec3(1., 0., 1.);
+    vec3 light_pos_2 = vec3(-1., 0., -1.);
     v_surface_to_light1 = normalize(light_pos_1 - position.xyz);
     v_surface_to_light2 = normalize(light_pos_2 - position.xyz);
 }
@@ -40,7 +40,7 @@ varying vec3 v_surface_to_light1;
 varying vec3 v_surface_to_light2;
 
 void main() {
-    float falloff_diffused = 1.;
+    float falloff_diffused = 2.;
     float falloff_reflected = 50.;
 
     vec3 half_vec_1 = normalize(v_surface_to_camera + v_surface_to_light1);

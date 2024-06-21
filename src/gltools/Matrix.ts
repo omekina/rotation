@@ -109,12 +109,12 @@ export function mat4_multiply(a: Matrix4, b: Matrix4) {
  * @param {number} near Near clip-plane distance
  * @param {number} far Far clip-plane distance
  */
-export function mat4_projection(fov: number, near: number, far: number): Matrix4 {
+export function mat4_projection(fov: number, near: number, far: number, width: number, height: number): Matrix4 {
     const f = Math.tan((.5 - fov / 360.) * Math.PI);
     const range_inverse = 1. / (near - far);
     return [
-        f, 0, 0, 0,
-        0, f, 0, 0,
+        f / width, 0, 0, 0,
+        0, f / height, 0, 0,
         0, 0, (near + far) * range_inverse, -1,
         0, 0, near * far * range_inverse * 2, 0,
     ];

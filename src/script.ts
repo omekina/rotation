@@ -7,16 +7,20 @@ import { set_unwrap_hook, unwrap } from "./wtools/unwrap";
 
 async function main(): Promise<void> {
     const canvas: HTMLCanvasElement = req_el("#render-target");
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
     const gl: WebGLRenderingContext = unwrap(canvas.getContext("webgl2"), "Could not get webgl2 context from rendering canvas.");
 
     const program: WebGLProgram = create_program(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
 
-    GLRotation.init(gl, program, [0, 0]);
+    const ratio: number = canvas.width / canvas.height;
+    GLRotation.init(gl, program, [0, 0], [ratio, 1]);
     GLRotation.render();
     window.addEventListener("mousemove", (event: MouseEvent) => {
+        const bounding_rect: DOMRect = canvas.getBoundingClientRect();
         GLRotation.set_pointer_pos([
-            event.clientX / window.innerWidth * 2 - 1,
-            - event.clientY / window.innerHeight * 2 + 1,
+            (event.clientX - bounding_rect.x) / bounding_rect.width * 2 / .9 * ratio - 1 / .9 * ratio,
+            - (event.clientY - bounding_rect.y) / bounding_rect.height * 2 / .9 + 1 / .9,
         ]);
         GLRotation.render();
     })
