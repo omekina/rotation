@@ -1,15 +1,17 @@
-export const VERTEX_SHADER_SOURCE: string = `
-attribute vec4 a_pos;
-attribute vec3 a_normal;
+export const VERTEX_SHADER_SOURCE: string = `#version 300 es
+in vec4 a_pos;
+in vec3 a_normal;
 
 uniform mat4 u_object;
 uniform mat4 u_normals;
 uniform mat4 u_projection;
+uniform vec3 u_light1_pos;
+uniform vec3 u_light2_pos;
 
-varying vec3 v_normal;
-varying vec3 v_surface_to_camera;
-varying vec3 v_surface_to_light1;
-varying vec3 v_surface_to_light2;
+out vec3 v_normal;
+out vec3 v_surface_to_camera;
+out vec3 v_surface_to_light1;
+out vec3 v_surface_to_light2;
 
 void main() {
     vec4 position = u_object * a_pos;
@@ -17,27 +19,26 @@ void main() {
 
     v_normal = mat3(u_normals) * a_normal;
 
-    vec3 cam_pos = vec3(0., 0., 0.);
-    v_surface_to_camera = normalize(cam_pos - position.xyz);
+    v_surface_to_camera = normalize(vec3(0.) - position.xyz);
 
-    vec3 light_pos_1 = vec3(1., 0., 1.);
-    vec3 light_pos_2 = vec3(-1., 0., -1.);
-    v_surface_to_light1 = normalize(light_pos_1 - position.xyz);
-    v_surface_to_light2 = normalize(light_pos_2 - position.xyz);
+    v_surface_to_light1 = normalize(u_light1_pos - position.xyz);
+    v_surface_to_light2 = normalize(u_light2_pos - position.xyz);
 }
 `;
 
 
-export const FRAGMENT_SHADER_SOURCE: string = `
+export const FRAGMENT_SHADER_SOURCE: string = `#version 300 es
 precision mediump float;
 
 uniform vec3 u_light1_color;
 uniform vec3 u_light2_color;
 
-varying vec3 v_normal;
-varying vec3 v_surface_to_camera;
-varying vec3 v_surface_to_light1;
-varying vec3 v_surface_to_light2;
+in vec3 v_normal;
+in vec3 v_surface_to_camera;
+in vec3 v_surface_to_light1;
+in vec3 v_surface_to_light2;
+
+out vec4 frag_color;
 
 void main() {
     float falloff_diffused = 2.;
@@ -51,6 +52,6 @@ void main() {
     float diffused2 = pow(clamp(dot(v_normal, v_surface_to_light2), 0., 1.), falloff_diffused) * .5;
     float reflected2 = pow(clamp(dot(v_normal, half_vec_2), 0., 1.), falloff_reflected);
 
-    gl_FragColor = vec4(u_light1_color * (diffused1 + reflected1) + u_light2_color * (diffused2 + reflected2), 1.);
+    frag_color = vec4(u_light1_color * (diffused1 + reflected1) + u_light2_color * (diffused2 + reflected2), 1.);
 }
 `;

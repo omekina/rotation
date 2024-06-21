@@ -21,7 +21,7 @@ type Matrix4 = [
 export default Matrix4;
 
 
-export function mat4_translation(tx: number, ty: number, tz: number): Matrix4 {
+export function translation(tx: number, ty: number, tz: number): Matrix4 {
     return [
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -34,7 +34,7 @@ export function mat4_translation(tx: number, ty: number, tz: number): Matrix4 {
 /**
  * @param {number} angle In radians
  */
-export function mat4_rotation_x(angle: number): Matrix4 {
+export function rotation_x(angle: number): Matrix4 {
     const s = Math.sin(angle);
     const c = Math.cos(angle);
     return [
@@ -48,7 +48,7 @@ export function mat4_rotation_x(angle: number): Matrix4 {
 /**
  * @param {number} angle In radians
  */
-export function mat4_rotation_y(angle: number): Matrix4 {
+export function rotation_y(angle: number): Matrix4 {
     const s = Math.sin(angle);
     const c = Math.cos(angle);
     return [
@@ -62,7 +62,7 @@ export function mat4_rotation_y(angle: number): Matrix4 {
 /**
  * @param {number} angle In radians
  */
-export function mat4_rotation_z(angle: number): Matrix4 {
+export function rotation_z(angle: number): Matrix4 {
     const s = Math.sin(angle);
     const c = Math.cos(angle);
     return [
@@ -74,7 +74,7 @@ export function mat4_rotation_z(angle: number): Matrix4 {
 }
 
 
-export function mat4_scale(sx: number, sy: number, sz: number): Matrix4 {
+export function scale(sx: number, sy: number, sz: number): Matrix4 {
     return [
         sx, 0, 0, 0,
         0, sy, 0, 0,
@@ -87,7 +87,7 @@ export function mat4_scale(sx: number, sy: number, sz: number): Matrix4 {
 /**
  * Warning: Matrices must have OpenGL in-memory layout.
  */
-export function mat4_multiply(a: Matrix4, b: Matrix4) {
+export function multiply(a: Matrix4, b: Matrix4) {
     let result: Matrix4 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     for (let i = 0; i < 4; ++i) {
         for (let j = 0; j < 4; ++j) {
@@ -109,7 +109,7 @@ export function mat4_multiply(a: Matrix4, b: Matrix4) {
  * @param {number} near Near clip-plane distance
  * @param {number} far Far clip-plane distance
  */
-export function mat4_projection(fov: number, near: number, far: number, width: number, height: number): Matrix4 {
+export function projection(fov: number, near: number, far: number, width: number, height: number): Matrix4 {
     const f = Math.tan((.5 - fov / 360.) * Math.PI);
     const range_inverse = 1. / (near - far);
     return [

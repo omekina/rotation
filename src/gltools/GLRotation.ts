@@ -1,47 +1,43 @@
-import { unwrap } from "../wtools/unwrap";
-import { geo_block, geo_block_normals } from "./Geometry";
-import Matrix4, { mat4_multiply, mat4_projection, mat4_rotation_x, mat4_rotation_z, mat4_scale, mat4_translation } from "./Matrix";
+import {
+    unwrap
+} from "../wtools/unwrap";
+
+import * as scene from "../data/scene";
+
+import Matrix4 from "./Matrix";
+import * as mat4 from "./Matrix";
+
 import req_attr, { WebGLAttributeLocation } from "./req_attr";
 import req_ufrm from "./req_ufrm";
 
 
 namespace GLRotation {
-    const LIGHT_1_COLOR: [number, number, number] = [0.7686274509803922, 0.6549019607843137, 0.9058823529411765];
-    const LIGHT_2_COLOR: [number, number, number] = [0.19215686274509805, 0.4549019607843137, 0.5607843137254902];
-
-    const pointer_depth: number = .25;
-
+    // Atrributes
     let a_pos: WebGLAttributeLocation; // vec3
     let a_normal: WebGLAttributeLocation; // vec3
 
+    // Uniforms
     let u_object: WebGLUniformLocation; // mat4
     let u_normals: WebGLUniformLocation; // mat3
     let u_projection: WebGLUniformLocation; // mat4
     let u_light1_color: WebGLUniformLocation; // vec4
     let u_light2_color: WebGLUniformLocation; // vec4
+    let u_light1_pos: WebGLUniformLocation; // vec3
+    let u_light2_pos: WebGLUniformLocation; // vec3
 
+    // Buffers
     let positions_buffer: WebGLBuffer;
     let normals_buffer: WebGLBuffer;
 
-    let plane_size: [number, number] = [0, 0];
-    
-    const VERTEX_POSITIONS: number[] = geo_block(
-        [-.5, -.75, .5],
-        [.5, -.75, .5],
-        [.5, .75, .5],
-        [-.5, .75, .5],
-        [-.5, -.75, -.5],
-        [.5, -.75, -.5],
-        [.5, .75, -.5],
-        [-.5, .75, -.5],
-    );
-    const VERTEX_NORMALS: number[] = geo_block_normals();
-
+    // Environment-wise variables
+    let plane_size: [number, number] = [1, 1];
     let pointer_pos: [number, number];
 
+    // GL base objects
     let gl: WebGLRenderingContext;
     let program: WebGLProgram;
 
+    // Initialization check
     let initialized: boolean = false;
 
 
@@ -68,12 +64,14 @@ namespace GLRotation {
         u_projection = req_ufrm(gl, program, "u_projection");
         u_light1_color = req_ufrm(gl, program, "u_light1_color");
         u_light2_color = req_ufrm(gl, program, "u_light2_color");
+        u_light1_pos = req_ufrm(gl, program, "u_light1_pos");
+        u_light2_pos = req_ufrm(gl, program, "u_light2_pos");
 
         pointer_pos = pointer_pos_init;
 
         // Buffers
-        positions_buffer = create_fill_buffer(gl, VERTEX_POSITIONS);
-        normals_buffer = create_fill_buffer(gl, VERTEX_NORMALS);
+        positions_buffer = create_fill_buffer(gl, scene.VERTEX_POSITIONS);
+        normals_buffer = create_fill_buffer(gl, scene.VERTEX_NORMALS);
 
         gl.useProgram(program);
         gl.enable(gl.CULL_FACE);
@@ -88,9 +86,11 @@ namespace GLRotation {
         gl.vertexAttribPointer(a_normal, 3, gl.FLOAT, false, 0, 0);
 
         // Uniform data
-        gl.uniform3fv(u_light1_color, new Float32Array(LIGHT_1_COLOR));
-        gl.uniform3fv(u_light2_color, new Float32Array(LIGHT_2_COLOR));
-        gl.uniformMatrix4fv(u_projection, false, new Float32Array(mat4_projection(
+        gl.uniform3fv(u_light1_color, new Float32Array(scene.LIGHT_1_COLOR));
+        gl.uniform3fv(u_light2_color, new Float32Array(scene.LIGHT_2_COLOR));
+        gl.uniform3fv(u_light1_pos, new Float32Array(scene.LIGHT_1_POS));
+        gl.uniform3fv(u_light2_pos, new Float32Array(scene.LIGHT_2_POS));
+        gl.uniformMatrix4fv(u_projection, false, new Float32Array(mat4.projection(
             90,
             .1,
             5,
@@ -126,26 +126,26 @@ namespace GLRotation {
         const planar_distance: number = Math.hypot(object_pos[0] - pointer_pos[0], object_pos[1] - pointer_pos[1]);
         let depth_angle: number = Math.PI / 2.;
         if (planar_distance > 0) {
-            depth_angle = Math.atan(pointer_depth / planar_distance);
+            depth_angle = Math.atan(scene.pointer_depth / planar_distance);
         }
 
-        const object_rotation: Matrix4 = mat4_multiply(
-            mat4_rotation_z(-Math.atan2(pointer_pos[0] - object_pos[0], pointer_pos[1] - object_pos[1])),
-            mat4_rotation_x(depth_angle),
+        const object_rotation: Matrix4 = mat4.multiply(
+            mat4.rotation_z(-Math.atan2(pointer_pos[0] - object_pos[0], pointer_pos[1] - object_pos[1])),
+            mat4.rotation_x(depth_angle),
         );
-        const object_transformation: Matrix4 = mat4_multiply(
-            mat4_multiply(
-                mat4_scale(.9, .9, 1),
-                mat4_translation(object_pos[0], object_pos[1], -1.0 - Math.pow(planar_distance * .1, 1.5)),
+        const object_transformation: Matrix4 = mat4.multiply(
+            mat4.multiply(
+                mat4.scale(.9, .9, 1),
+                mat4.translation(object_pos[0], object_pos[1], -1.0 - Math.pow(planar_distance * .1, 1.5)),
             ),
-            mat4_multiply(
-                mat4_scale(.02, .02, .02),
+            mat4.multiply(
+                mat4.scale(.02, .02, .02),
                 object_rotation,
             ),
         );
         gl.uniformMatrix4fv(u_object, false, new Float32Array(object_transformation));
         gl.uniformMatrix4fv(u_normals, false, new Float32Array(object_rotation));
-        gl.drawArrays(gl.TRIANGLES, 0, VERTEX_POSITIONS.length / 3);
+        gl.drawArrays(gl.TRIANGLES, 0, scene.VERTEX_POSITIONS.length / 3);
     }
 
     
@@ -153,6 +153,7 @@ namespace GLRotation {
     
 
     export function render(): void {
+        if (!initialized) { return; }
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         for (let i = 0; i <= 50; ++i) {

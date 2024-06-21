@@ -21,20 +21,6 @@ export function unwrap<T>(value: T|null, error_message: string): T {
 
 
 /**
- * This function behaves as a standard unwrap with one exception: the global error hook is overriden with the locally specified one.
- *
- * @param error_hook - The local error hook to call instead
- */
-export function unwrap_or<T>(value: T|null, error_hook: () => void): T {
-    if (value === null) {
-        error_hook();
-        throw new Error("unwrap failed");
-    }
-    return value;
-}
-
-
-/**
  * This function will set the unwrap hook.
  *
  * Unwrap hook will be called when some unwrap fails.
