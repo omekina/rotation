@@ -91,14 +91,15 @@ uniform vec2 u_res;
 out vec4 frag_color;
 
 const float glare_threshold = 1.2;
-const int halfwindow_size = 5;
+const int halfwindow_size = 2;
 
 vec4 glare() {
     vec4 result = vec4(0.);
     for (int x = -halfwindow_size; x <= halfwindow_size; ++x) {
         for (int y = -halfwindow_size; y <= halfwindow_size; ++y) {
-            vec2 texel = vec2(float(x), float(y)) / u_res;
+            vec2 texel = vec2(float(x), float(y)) / u_res * 2.;
             vec4 cur_color = texture(u_texture, v_texcoord + texel);
+            float brightness = dot(vec3(cur_color), vec3(.2126, .7152, .0722));
             result += clamp(cur_color * (length(cur_color) - glare_threshold), 0., .2);
         }
     }
