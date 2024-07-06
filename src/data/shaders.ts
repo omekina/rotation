@@ -91,10 +91,10 @@ uniform vec2 u_res;
 out vec4 frag_color;
 
 const float glare_threshold = 1.2;
+const int halfwindow_size = 5;
 
 vec4 glare() {
     vec4 result = vec4(0.);
-    int halfwindow_size = int(u_res.x / 100.);
     for (int x = -halfwindow_size; x <= halfwindow_size; ++x) {
         for (int y = -halfwindow_size; y <= halfwindow_size; ++y) {
             vec2 texel = vec2(float(x), float(y)) / u_res;
