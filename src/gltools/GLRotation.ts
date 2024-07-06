@@ -37,8 +37,10 @@ namespace GLRotation {
     let pointer_pos: [number, number];
 
     // Framebuffer
-    let render_buffer: WebGLFramebuffer;
-    let render_texture: WebGLTexture;
+    let renderbuffer: WebGLRenderbuffer;
+    let render_framebuffer: WebGLFramebuffer;
+    let framebuffer: WebGLFramebuffer;
+    let rendertexture: WebGLTexture;
 
     // GL base objects
     let gl: WebGL2RenderingContext;
@@ -87,15 +89,23 @@ namespace GLRotation {
         pointer_pos = pointer_pos_init;
 
         // Framebuffer
-        render_buffer = unwrap(gl.createFramebuffer(), "Could not create WebGL framebuffer.");
-        render_texture = unwrap(gl.createTexture(), "Could not create WebGL texture.");
-        gl.bindTexture(gl.TEXTURE_2D, render_texture);
+        rendertexture = unwrap(gl.createTexture(), "Could not create WebGL texture.");
+        gl.bindTexture(gl.TEXTURE_2D, rendertexture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas_size[0], canvas_size[1], 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, render_buffer);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, render_texture, 0);
+
+        renderbuffer = unwrap(gl.createRenderbuffer(), "Could not create WebGL renderbuffer.");
+        gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, canvas_size[0], canvas_size[1]);
+
+        render_framebuffer = unwrap(gl.createFramebuffer(), "Could not create WebGL framebuffer.");
+        gl.bindFramebuffer(gl.FRAMEBUFFER, render_framebuffer);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
+
+        framebuffer = unwrap(gl.createFramebuffer(), "Could not create WebGL framebuffer.");
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rendertexture, 0);
 
         // Buffers
         positions_buffer = create_fill_buffer(gl, scene.VERTEX_POSITIONS);
@@ -196,7 +206,7 @@ namespace GLRotation {
     export function render(): void {
         if (!initialized) { return; }
         gl.useProgram(program);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, render_buffer);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, render_framebuffer);
         gl.bindVertexArray(vao_block);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -205,6 +215,14 @@ namespace GLRotation {
                 render_object([i / 25 - 1, j / 25 - 1]);
             }
         }
+
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, render_framebuffer);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer);
+        gl.blitFramebuffer(
+            0, 0, canvas_size[0], canvas_size[1],
+            0, 0, canvas_size[0], canvas_size[1],
+            gl.COLOR_BUFFER_BIT, gl.NEAREST,
+        );
         
         gl.useProgram(filter_program);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
