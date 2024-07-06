@@ -1,4 +1,4 @@
-import { FRAGMENT_SHADER_SOURCE, VERTEX_SHADER_SOURCE } from "./data/shaders";
+import { FRAGMENT_SHADER_FILTER_SOURCE, FRAGMENT_SHADER_SOURCE, VERTEX_SHADER_FILTER_SOURCE, VERTEX_SHADER_SOURCE } from "./data/shaders";
 import GLRotation from "./gltools/GLRotation";
 import create_program from "./gltools/create_program";
 import req_el from "./wtools/req_el";
@@ -9,12 +9,13 @@ async function main(): Promise<void> {
     const canvas: HTMLCanvasElement = req_el("#render-target");
     canvas.height = window.innerHeight;
     canvas.width = window.innerWidth;
-    const gl: WebGLRenderingContext = unwrap(canvas.getContext("webgl2"), "Could not get webgl2 context from rendering canvas.");
+    const gl: WebGL2RenderingContext = unwrap(canvas.getContext("webgl2"), "Could not get webgl2 context from rendering canvas.");
 
     const program: WebGLProgram = create_program(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
+    const filter_program: WebGLProgram = create_program(gl, VERTEX_SHADER_FILTER_SOURCE, FRAGMENT_SHADER_FILTER_SOURCE);
 
     const ratio: number = canvas.width / canvas.height;
-    GLRotation.init(gl, program, [0, 0], [ratio, 1]);
+    GLRotation.init(gl, program, filter_program, [0, 0], [ratio, 1], [canvas.width, canvas.height]);
     GLRotation.render();
     window.addEventListener("mousemove", (event: MouseEvent) => {
         const bounding_rect: DOMRect = canvas.getBoundingClientRect();

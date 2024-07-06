@@ -1,4 +1,4 @@
-import { geo_block, geo_block_normals } from "../gltools/Geometry";
+import { geo_block, geo_block_normals, geo_quad } from "../gltools/Geometry";
 
 
 // Light colors
@@ -15,7 +15,7 @@ export const LIGHT_2_POS: [number, number, number] = [-1., 0., -1.];
 export const pointer_depth: number = .25;
 
 
-// Buffer data
+// Buffer data (block)
 export const VERTEX_POSITIONS: number[] = geo_block(
     [-.5, -.75, .5],
     [.5, -.75, .5],
@@ -27,3 +27,11 @@ export const VERTEX_POSITIONS: number[] = geo_block(
     [-.5, .75, -.5],
 );
 export const VERTEX_NORMALS: number[] = geo_block_normals();
+
+// Buffer data (plane)
+export const VERTEX_POSITIONS_PLANE: number[] = geo_quad(
+    [-1, -1, 0],
+    [1, -1, 0],
+    [1, 1, 0],
+    [-1, 1, 0],
+);
