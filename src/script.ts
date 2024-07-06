@@ -14,17 +14,31 @@ async function main(): Promise<void> {
     const program: WebGLProgram = create_program(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
     const filter_program: WebGLProgram = create_program(gl, VERTEX_SHADER_FILTER_SOURCE, FRAGMENT_SHADER_FILTER_SOURCE);
 
-    const ratio: number = canvas.width / canvas.height;
-    GLRotation.init(gl, program, filter_program, [0, 0], [ratio, 1], [canvas.width, canvas.height]);
-    GLRotation.render();
-    window.addEventListener("mousemove", (event: MouseEvent) => {
-        const bounding_rect: DOMRect = canvas.getBoundingClientRect();
-        GLRotation.set_pointer_pos([
-            (event.clientX - bounding_rect.x) / bounding_rect.width * 2 / .9 * ratio - 1 / .9 * ratio,
-            - (event.clientY - bounding_rect.y) / bounding_rect.height * 2 / .9 + 1 / .9,
-        ]);
+    let plane_size: [number, number] = [1, 1];
+    if (canvas.width > canvas.height) { plane_size = [canvas.width / canvas.height, 1]; }
+    else { plane_size = [1, canvas.height / canvas.width]; }
+    GLRotation.init(gl, program, filter_program, [0, 0], plane_size, [canvas.width, canvas.height]);
+    if (window.matchMedia("(any-hover: none)").matches) {
+        (<HTMLDivElement>req_el("#mobile-notification")).style.display = "flex";
+        let step = 0;
+        function update() {
+            GLRotation.set_pointer_pos([Math.cos(step * Math.PI / 180), Math.sin(step * Math.PI / 180)]);
+            GLRotation.render();
+            ++step;
+            requestAnimationFrame(update);
+        }
+        update();
+    } else {
         GLRotation.render();
-    })
+        window.addEventListener("mousemove", (event: MouseEvent) => {
+            const bounding_rect: DOMRect = canvas.getBoundingClientRect();
+            GLRotation.set_pointer_pos([
+                (event.clientX - bounding_rect.x) / bounding_rect.width * 2 / .9 * plane_size[0] - 1 / .9 * plane_size[0],
+                - (event.clientY - bounding_rect.y) / bounding_rect.height * 2 / .9 * plane_size[1] + 1 / .9 * plane_size[1],
+            ]);
+            GLRotation.render();
+        });
+    }
 }
 
 

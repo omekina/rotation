@@ -49,3 +49,14 @@ canvas {
   color: $color-accent;
   text-align: center;
 }
+
+
+#mobile-notification {
+  display: none;
+  padding: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: center;
+  border-bottom: 1px solid $color-accent;
+  background-color: $color-background;
+}
