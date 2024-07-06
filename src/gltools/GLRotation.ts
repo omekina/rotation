@@ -37,9 +37,10 @@ namespace GLRotation {
     let pointer_pos: [number, number];
 
     // Framebuffer
-    let renderbuffer: WebGLRenderbuffer;
-    let render_framebuffer: WebGLFramebuffer;
-    let framebuffer: WebGLFramebuffer;
+    let attachment_color: WebGLRenderbuffer;
+    let attachment_depth: WebGLRenderbuffer;
+    let framebuffer_source: WebGLFramebuffer;
+    let framebuffer_dst: WebGLFramebuffer;
     let rendertexture: WebGLTexture;
 
     // GL base objects
@@ -88,6 +89,10 @@ namespace GLRotation {
 
         pointer_pos = pointer_pos_init;
 
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DEPTH_TEST);
+
         // Framebuffer
         rendertexture = unwrap(gl.createTexture(), "Could not create WebGL texture.");
         gl.bindTexture(gl.TEXTURE_2D, rendertexture);
@@ -95,17 +100,25 @@ namespace GLRotation {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas_size[0], canvas_size[1], 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 
-        renderbuffer = unwrap(gl.createRenderbuffer(), "Could not create WebGL renderbuffer.");
-        gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
+        attachment_color = unwrap(gl.createRenderbuffer(), "Could not create WebGL renderbuffer.");
+        gl.bindRenderbuffer(gl.RENDERBUFFER, attachment_color);
         gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, canvas_size[0], canvas_size[1]);
 
-        render_framebuffer = unwrap(gl.createFramebuffer(), "Could not create WebGL framebuffer.");
-        gl.bindFramebuffer(gl.FRAMEBUFFER, render_framebuffer);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderbuffer);
+        attachment_depth = unwrap(gl.createRenderbuffer(), "Could not create WebGL renderbuffer.");
+        gl.bindRenderbuffer(gl.RENDERBUFFER, attachment_depth);
+        gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH_COMPONENT24, canvas_size[0], canvas_size[1]);
 
-        framebuffer = unwrap(gl.createFramebuffer(), "Could not create WebGL framebuffer.");
-        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        framebuffer_source = unwrap(gl.createFramebuffer(), "Could not create WebGL framebuffer.");
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer_source);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, attachment_color);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, attachment_depth);
+
+        framebuffer_dst = unwrap(gl.createFramebuffer(), "Could not create WebGL framebuffer.");
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer_dst);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rendertexture, 0);
+
+        gl.bindTexture(gl.TEXTURE_2D, rendertexture);
+
 
         // Buffers
         positions_buffer = create_fill_buffer(gl, scene.VERTEX_POSITIONS);
@@ -113,8 +126,6 @@ namespace GLRotation {
         positions_plane_buffer = create_fill_buffer(gl, scene.VERTEX_POSITIONS_PLANE);
 
         gl.useProgram(program);
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_TEST);
 
         // Buffer data
         vao_block = unwrap(gl.createVertexArray(), "Could not create WebGL Vertex Array.");
@@ -206,7 +217,7 @@ namespace GLRotation {
     export function render(): void {
         if (!initialized) { return; }
         gl.useProgram(program);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, render_framebuffer);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer_source);
         gl.bindVertexArray(vao_block);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -216,8 +227,9 @@ namespace GLRotation {
             }
         }
 
-        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, render_framebuffer);
-        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer);
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, framebuffer_source);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, framebuffer_dst);
+
         gl.blitFramebuffer(
             0, 0, canvas_size[0], canvas_size[1],
             0, 0, canvas_size[0], canvas_size[1],
